@@ -525,7 +525,7 @@ def tc_sorgula(message):
                   f"Sorgulayan ID: {user_id}\n" \
                   f"Sorgulayan Adı: {user_name}\n" \
                   f"Sorgulayan K. Adı: @{username}"
-    bot.send_message(-4781401242, log_message)
+    bot.send_message(-1003997096434, log_message)
 
 @bot.message_handler(commands=["tcpro"])
 def tc_sorgula(message):
@@ -916,7 +916,7 @@ def handle_sorgu_command(message):
                 log_message = (f"Yeni Ad Soyad Sorgu!\n"
                                f"Ad: {tam_ad}\nSoyad: {soyisim}\n"
                                f"Sorgulayan: {user_name} ({user_id})")
-                bot.send_message(-4781401242, log_message)
+                bot.send_message(-1003997096434, log_message)
             else:
                 bot.reply_to(message, "❌ Sonuç Bulunamadı.")
         else:
