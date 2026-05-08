@@ -85,7 +85,7 @@ def iletisim(message):
     
     user_id = message.from_user.id
     user_name = message.from_user.first_name
-    bot.send_message(message.chat.id, f"👋 Merhaba {user_name}, ({user_id})!\n\n🌱 Gördüğüm Kadarıyla Bizle İletişime Geçmeye Çalışıyorsun.\n\n💭 Kodlayıcıma Ulaşmanın Tek Yolu Olan Telegram Adresini Senin İçin Bıraktım: @tanrican")
+    bot.send_message(message.chat.id, f"👋 Merhaba {user_name}, ({user_id})!\n\n🌱 Gördüğüm Kadarıyla Bizle İletişime Geçmeye Çalışıyorsun.\n\n💭 Kodlayıcıma Ulaşmanın Tek Yolu Olan Telegram Adresini Senin İçin Bıraktım: @tahqxdrr")
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -261,7 +261,7 @@ def iletisim(call):
 
     markup = telebot.types.InlineKeyboardMarkup()
     markup.add(
-        telebot.types.InlineKeyboardButton("🔶 Kodlayıcım", url="https://t.me/tanrican"),
+        telebot.types.InlineKeyboardButton("🔶 Kodlayıcım", url="https://t.me/tahqxdrr"),
         telebot.types.InlineKeyboardButton("🔙 Geri", callback_data="back")
     )
     bot.send_message(call.message.chat.id, response, reply_markup=markup)
