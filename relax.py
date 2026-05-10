@@ -1628,7 +1628,6 @@ def gsm(message):
         bot.reply_to(message, '```\nLütfen geçerli bir GSM numarası girin!\nÖrnek: /gsmtc 5553723339\n(Başında 0 olmadan 10 hane)```', parse_mode="Markdown")
         return
 
-    # API ve Veri İşleme Kısmı (Artık fonksiyonun içinde)
     try:
         api_url = f"https://arastir.vip/api/gsmtc.php?gsm={gsm_num}"
         response = requests.get(api_url, timeout=10)
@@ -1639,13 +1638,14 @@ def gsm(message):
         if isinstance(data.get("data"), list) and len(data["data"]) > 0:
             entry = data["data"][0]
 
-            result_text = f"```\n╭━━━━━━━━━━━━━━╮\n"
-            result_text += f"┃➥ +  Sorgu Başarılı\n"
-            result_text += f"╰━━━━━━━━━━━━━━╯\n"
-            result_text += f"╭─━━━━━━━━━━━━─╮\n"
+            # Burada f-string hataları giderildi, tırnaklar kapatıldı
+            result_text = "```\n╭━━━━━━━━━━━━━━╮\n"
+            result_text += "┃➥ +  Sorgu Başarılı\n"
+            result_text += "╰━━━━━━━━━━━━━━╯\n"
+            result_text += "╭─━━━━━━━━━━━━─╮\n"
             result_text += f"┃➥ T.C Kimlik Numarası: {entry.get('TC', 'Bulunamadı')}\n"
             result_text += f"┃➥ GSM: {entry.get('GSM', 'Bulunamadı')}\n"
-            result_text += f"╰─━━━━━━━━━━━━━─╯
+            result_text += "╰─━━━━━━━━━━━━━─╯\n
 ```"
 
             bot.reply_to(message, result_text, parse_mode="Markdown")
@@ -1663,11 +1663,9 @@ def gsm(message):
             bot.reply_to(message, '⚠️ *Girdiğiniz Bilgiler ile Eşleşen Biri Bulunamadı!*', parse_mode="Markdown")
 
     except requests.exceptions.RequestException as err:
-        print(f"API Hatası: {err}")
         bot.reply_to(message, '⚠️ *Servis şu anda yanıt vermiyor. Lütfen sonra deneyin!*', parse_mode="Markdown")
 
     except Exception as e:
-        print(f"Sistem Hatası: {e}")
         bot.reply_to(message, '⚠️ Bir hata oluştu. Lütfen tekrar deneyin.', parse_mode="Markdown")
 
 @bot.message_handler(commands=['tcgsm'])
