@@ -1577,7 +1577,7 @@ def sulale_sorgula(message):
                 print(f"Hata: {e}")
                 bot.reply_to(message, "⚠️ Sorgulama sırasında teknik bir sorun oluştu.")
         else:
-            bot.reply_to(message, '```\nLütfen geçerli bir T.C. Kimlik Numarası girin!\nÖrnek: /sulale 11111111110
+bot.reply_to(message, '```\nLütfen geçerli bir T.C. Kimlik Numarası girin!\nÖrnek: /sulale 11111111110\n
 ```', parse_mode="Markdown")
 
 @bot.message_handler(commands=["rapor"])
