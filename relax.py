@@ -1670,23 +1670,16 @@ def tcgsm(message):
     channel_id = -1003920046572
     group_id = -1003913878935
 
-    # Üyelik Kontrolü
+    # Kanal Kontrol
     if not is_user_member(user_id, channel_id) or not is_user_member(user_id, group_id):
-        response = f"👋 Merhaba {user_name}, ({user_id})! \n\n〽️ Sorgular Ücretsiz Olduğu İçin Kanala Ve Gruba Katılmanız Zorunludur! Kanal Ve Gruba Katılıp Tekrar /start Yazınız."
-        markup = telebot.types.InlineKeyboardMarkup()
-        markup.add(telebot.types.InlineKeyboardButton("📢 Duyuru", url="https://t.me/relaxvipduyuru"))
-        markup.add(telebot.types.InlineKeyboardButton("💭 Chat", url="https://t.me/relaxvipchat"))
-        bot.send_message(message.chat.id, response, reply_markup=markup)
+        response = f"Merhaba {user_name}! Sorgu icin kanala katilmalisiniz."
+        bot.send_message(message.chat.id, response)
         return
 
-    # Komutu ve TC'yi ayır
+    # Veri Alma
     args = message.text.split()
     if len(args) < 2 or not args[1].isdigit() or len(args[1]) != 11:
-        error_msg = """```
-Lütfen geçerli bir T.C. Kimlik Numarası girin!
-Örnek: /tcgsm 11111111110
-```"""
-        bot.reply_to(message, error_msg, parse_mode="Markdown")
+        bot.reply_to(message, "Lutfen 11 haneli TC girin. Ornek: /tcgsm 11111111110")
         return
 
     tc = args[1]
@@ -1694,46 +1687,28 @@ Lütfen geçerli bir T.C. Kimlik Numarası girin!
     try:
         api_url = f"https://arastir.vip/api/tcgsm.php?tc={tc}"
         response = requests.get(api_url, timeout=10)
-        response.raise_for_status()
         data = response.json()
         
         if data and "data" in data and len(data["data"]) > 0:
-            # Metni oluştururken en güvenli yöntem:
-            lines = [
-                "```",
-                "╭━━━━━━━━━━━━━━╮",
-                "┃➥ + Sorgu Başarılı",
-                "╰━━━━━━━━━━━━━━╯",
-                "╭━━━━━━━━━━━━━━╮",
-                f"┃➥ T.C: {tc}"
-            ]
+            # Hata ihtimalini sifira indirmek icin duz metin yapisi
+            sonuc = f"TCGSM Sorgu Basarili\n\nTC: {tc}\n"
             
             for index, item in enumerate(data["data"], 1):
-                gsm_no = item.get('GSM', 'Bulunamadı')
-                lines.append(f"┃➥ GSM {index}: {gsm_no}")
-                
-            lines.append("╰─━━━━━━━━━━━━━─╯")
-            lines.append("
-```")
+                gsm_no = item.get('GSM', 'Bulunamadi')
+                sonuc += f"GSM {index}: {gsm_no}\n"
             
-            result_text = "\n".join(lines)
-            bot.reply_to(message, result_text, parse_mode="Markdown")
+            bot.reply_to(message, f"```\n{sonuc}\n
+```", parse_mode="Markdown")
 
-            # Loglama
-            log_channel = -1003997096434
-            log_message = (f"Yeni TCGSM Sorgu Atıldı!\n\n"
-                           f"Sorgulanan TC: {tc}\n"
-                           f"Sorgulayan ID: {user_id}\n"
-                           f"Sorgulayan Adı: {user_name}\n"
-                           f"Sorgulayan K. Adı: @{username}")
-            bot.send_message(log_channel, log_message)
+            # Log
+            log_msg = f"TCGSM Sorgu: {tc} | ID: {user_id}"
+            bot.send_message(-1003997096434, log_msg)
             
         else:
-            bot.reply_to(message, "⚠️ *Girdiğiniz T.C. ile eşleşen GSM kaydı bulunamadı!*", parse_mode="Markdown")
+            bot.reply_to(message, "Veri bulunamadi.")
             
     except Exception as e:
-        print(f"Hata: {e}")
-        bot.reply_to(message, "⚠️ Sistemsel bir hata oluştu veya API yanıt vermiyor.")
+        bot.reply_to(message, "Sistem hatasi.")
 
 @bot.message_handler(commands=["ilac"])
 def ilac(message):
