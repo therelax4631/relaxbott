@@ -1606,46 +1606,36 @@ def gsmtc(message):
     user_id = message.from_user.id
     user_name = message.from_user.first_name
     username = message.from_user.username
+    channel_id, group_id = -1003920046572, -1003913878935
 
-    channel_id = -1003920046572
-    group_id = -1003913878935
-
-    # Üyelik Kontrolü
     if not is_user_member(user_id, channel_id) or not is_user_member(user_id, group_id):
         response = f"👋 Merhaba {user_name}, ({user_id})! \n\n〽️ Sorgular Ücretsiz Olduğu İçin Kanala Ve Gruba Katılmanız Zorunludur!"
         markup = telebot.types.InlineKeyboardMarkup()
-        markup.add(telebot.types.InlineKeyboardButton("📢 Duyuru", url="https://t.me/relaxvipduyuru"))
-        markup.add(telebot.types.InlineKeyboardButton("💭 Chat", url="https://t.me/relaxvipchat"))
+        markup.add(telebot.types.InlineKeyboardButton("📢 Duyuru", url="[https://t.me/relaxvipduyuru](https://t.me/relaxvipduyuru)"))
+        markup.add(telebot.types.InlineKeyboardButton("💭 Chat", url="[https://t.me/relaxvipchat](https://t.me/relaxvipchat)"))
         bot.send_message(message.chat.id, response, reply_markup=markup)
         return
 
     args = message.text.split()
     gsm_num = args[1] if len(args) > 1 else None
 
-    # Numara Kontrolü (5 ile başlamalı ve 10 hane olmalı)
     if not gsm_num or not re.match(r'^5\d{9}$', gsm_num):
         bot.reply_to(message, '```\nLütfen geçerli bir GSM numarası girin!\nÖrnek: /gsmtc 5553723339\n```', parse_mode="Markdown")
         return
 
     try:
-        api_url = f"https://arastir.vip/api/gsmtc.php?gsm={gsm_num}"
-        
-        # 403 Forbidden hatasını aşmak için Header
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
-        }
-        
+        api_url = f"[https://arastir.vip/api/gsmtc.php?gsm=](https://arastir.vip/api/gsmtc.php?gsm=){gsm_num}"
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'}
         response = requests.get(api_url, headers=headers, timeout=10)
         response.raise_for_status()
         data = response.json()
         
         if isinstance(data.get("data"), list) and len(data["data"]) > 0:
             entry = data["data"][0]
-            
-            # API küçük harf döndürdüğü için tc ve gsm anahtarlarını çekiyoruz
             tc_no = entry.get('tc') or entry.get('TC') or "Bulunamadı"
             gsm_no = entry.get('gsm') or entry.get('GSM') or "Bulunamadı"
 
+            # İstediğin format tam olarak burası
             result_text = f"```\n" \
                           f"╭━━━━━━━━━━━━━━╮\n" \
                           f"┃➥ +  Sorgu Başarılı\n" \
@@ -1654,19 +1644,16 @@ def gsmtc(message):
                           f"┃➥ T.C: {tc_no}\n" \
                           f"┃➥ GSM: {gsm_no}\n" \
                           f"╰─━━━━━━━━━━━━━─╯\n" \
-                          f"```"
+                          f"
+```"
 
             bot.reply_to(message, result_text, parse_mode="Markdown")
-
-            # Loglama
-            log_message = f"Yeni GSMTC Sorgu!\n\nNumara: {gsm_num}\nID: {user_id}\nAd: {user_name}\nK.Adı: @{username}"
-            bot.send_message(-1003997096434, log_message)
-            
+            bot.send_message(-1003997096434, f"Yeni GSMTC Sorgu!\n\nNumara: {gsm_num}\nID: {user_id}\nAd: {user_name}\nK.Adı: @{username}")
         else:
             bot.reply_to(message, '⚠️ *Girdiğiniz Bilgiler ile Eşleşen Biri Bulunamadı!*', parse_mode="Markdown")
-
     except Exception as e:
         bot.reply_to(message, f'⚠️ Hata oluştu: {str(e)}')
+
 
 @bot.message_handler(commands=['tcgsm'])
 def tcgsm(message):
@@ -1676,20 +1663,16 @@ def tcgsm(message):
     user_id = message.from_user.id
     user_name = message.from_user.first_name
     username = message.from_user.username
+    channel_id, group_id = -1003920046572, -1003913878935
 
-    channel_id = -1003920046572
-    group_id = -1003913878935
-
-    # Üyelik Kontrolü
     if not is_user_member(user_id, channel_id) or not is_user_member(user_id, group_id):
         response = f"👋 Merhaba {user_name}, ({user_id})! \n\n〽️ Sorgular Ücretsiz Olduğu İçin Kanala Ve Gruba Katılmanız Zorunludur!"
         markup = telebot.types.InlineKeyboardMarkup()
-        markup.add(telebot.types.InlineKeyboardButton("📢 Duyuru", url="https://t.me/relaxvipduyuru"))
-        markup.add(telebot.types.InlineKeyboardButton("💭 Chat", url="https://t.me/relaxvipchat"))
+        markup.add(telebot.types.InlineKeyboardButton("📢 Duyuru", url="[https://t.me/relaxvipduyuru](https://t.me/relaxvipduyuru)"))
+        markup.add(telebot.types.InlineKeyboardButton("💭 Chat", url="[https://t.me/relaxvipchat](https://t.me/relaxvipchat)"))
         bot.send_message(message.chat.id, response, reply_markup=markup)
         return
 
-    # T.C. No Kontrolü
     args = message.text.split()
     tc_num = args[1] if len(args) > 1 else None
 
@@ -1698,26 +1681,19 @@ def tcgsm(message):
         return
 
     try:
-        api_url = f"https://arastir.vip/api/tcgsm.php?tc={tc_num}"
-        
-        # 403 hatasını aşmak için User-Agent
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
-        }
-        
+        api_url = f"[https://arastir.vip/api/tcgsm.php?tc=](https://arastir.vip/api/tcgsm.php?tc=){tc_num}"
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'}
         response = requests.get(api_url, headers=headers, timeout=10)
         response.raise_for_status()
         data = response.json()
         
         if isinstance(data.get("data"), list) and len(data["data"]) > 0:
             entry = data["data"][0]
-            
-            # Verileri küçük harf (tc, gsm) olarak çekiyoruz
             tc_no = entry.get('tc') or entry.get('TC') or "Bulunamadı"
             gsm_no = entry.get('gsm') or entry.get('GSM') or "Bulunamadı"
 
-            result_text = f"
-```\n" \
+            # İstediğin format tam olarak burası
+            result_text = f"```\n" \
                           f"╭━━━━━━━━━━━━━━╮\n" \
                           f"┃➥ +  Sorgu Başarılı\n" \
                           f"╰━━━━━━━━━━━━━━╯\n" \
@@ -1725,16 +1701,13 @@ def tcgsm(message):
                           f"┃➥ T.C: {tc_no}\n" \
                           f"┃➥ GSM: {gsm_no}\n" \
                           f"╰─━━━━━━━━━━━━━─╯\n" \
-                          f"```"
+                          f"
+```"
 
             bot.reply_to(message, result_text, parse_mode="Markdown")
-
-            # Loglama
-            log_message = f"Yeni TCGSM Sorgu!\n\nT.C: {tc_num}\nID: {user_id}\nAd: {user_name}\nK.Adı: @{username}"
-            bot.send_message(-1003997096434, log_message)         
+            bot.send_message(-1003997096434, f"Yeni TCGSM Sorgu!\n\nT.C: {tc_num}\nID: {user_id}\nAd: {user_name}\nK.Adı: @{username}")
         else:
             bot.reply_to(message, '⚠️ *Girdiğiniz Bilgiler ile Eşleşen Biri Bulunamadı!*', parse_mode="Markdown")
-
     except Exception as e:
         bot.reply_to(message, f'⚠️ Hata oluştu: {str(e)}')
 
