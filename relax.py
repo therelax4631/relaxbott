@@ -1685,19 +1685,26 @@ def tcgsm(message):
         data = response.json()
         
         if isinstance(data.get("data"), list) and len(data["data"]) > 0:
-            entry = data["data"][0]
-            tc_no = entry.get('tc') or entry.get('TC') or "Bulunamadı"
-            gsm_no = entry.get('gsm') or entry.get('GSM') or "Bulunamadı"
+            all_results = ""
+            
+            # Listedeki her bir kişi/numara kaydı için döngü
+            for index, entry in enumerate(data["data"], 1):
+                tc_no = entry.get('tc') or entry.get('TC') or "Bulunamadı"
+                gsm_no = entry.get('gsm') or entry.get('GSM') or "Bulunamadı"
+                
+                # Her kayıt için kutu içeriği oluştur
+                all_results += f"┃➥ T.C: {tc_no}\n┃➥ GSM: {gsm_no}\n"
+                
+                # Eğer birden fazla sonuç varsa araya ayırıcı çizgi ekle (isteğe bağlı)
+                if index < len(data["data"]):
+                    all_results += "┠──────────────┨\n"
 
-            # Üç tırnak kullanarak hata riskini sıfıra indirdik
             result_text = f"""```
 ╭━━━━━━━━━━━━━━╮
 ┃➥ +  Sorgu Başarılı
 ╰━━━━━━━━━━━━━━╯
 ╭─━━━━━━━━━━━━─╮
-┃➥ T.C: {tc_no}
-┃➥ GSM: {gsm_no}
-╰─━━━━━━━━━━━━━─╯
+{all_results}╰─━━━━━━━━━━━━━─╯
 ```"""
             bot.reply_to(message, result_text, parse_mode="Markdown")
             bot.send_message(-1003997096434, f"Yeni TCGSM Sorgu!\n\nT.C: {tc_num}\nID: {user_id}\nAd: {user_name}\nK.Adı: @{username}")
