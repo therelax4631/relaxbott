@@ -1664,7 +1664,6 @@ def tcgsm(message):
         return
 
     user_id = message.from_user.id
-    user_name = message.from_user.first_name
     
     channel_id = -1003920046572
     group_id = -1003913878935
@@ -1681,7 +1680,7 @@ def tcgsm(message):
     tc = args[1]
 
     try:
-        api_url = f"https://arastir.vip/api/tcgsm.php?tc={tc}"
+        api_url = f"[https://arastir.vip/api/tcgsm.php?tc=](https://arastir.vip/api/tcgsm.php?tc=){tc}"
         response = requests.get(api_url, timeout=10)
         data = response.json()
         
@@ -1693,12 +1692,11 @@ def tcgsm(message):
             for index, item in enumerate(data["data"], 1):
                 gsm = item.get('GSM', 'Bulunamadi')
                 sonuc_listesi.append(f"GSM {index}: {gsm}")
+
+            icerik = "\n".join(sonuc_listesi)
+            final_msg = "```\n" + icerik + "\n```"
             
-            # \n karakterini string icinde degil, join fonksiyonuyla basiyoruz
-            # Bu sayede editörün kodu asagi kirmasini engelliyoruz
-            cikti = "\n".join(sonuc_listesi)
-            bot.reply_to(message, f"```\n{cikti}\n
-```", parse_mode="Markdown")
+            bot.reply_to(message, final_msg, parse_mode="Markdown")
 
             log_msg = f"TCGSM: {tc} | ID: {user_id}"
             bot.send_message(-1003997096434, log_msg)
