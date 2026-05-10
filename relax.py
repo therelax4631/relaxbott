@@ -1610,33 +1610,33 @@ def gsm(message):
     channel_id = -1003920046572
     group_id = -1003913878935
 
+    # Üyelik Kontrolü
     if not is_user_member(user_id, channel_id) or not is_user_member(user_id, group_id):
         response = f"👋 Merhaba {user_name}, ({user_id})! \n\n〽️ Sorgular Ücretsiz Olduğu İçin Kanala Ve Gruba Katılmanız Zorunludur! Kanal Ve Gruba Katılıp Tekrar /start Yazınız."
         markup = telebot.types.InlineKeyboardMarkup()
-        markup.add(
-            telebot.types.InlineKeyboardButton("📢 Duyuru", url="https://t.me/relaxvipduyuru"),
-        )    
-        markup.add(
-            telebot.types.InlineKeyboardButton("💭 Chat", url="https://t.me/relaxvipchat"),
-        ) 
+        markup.add(telebot.types.InlineKeyboardButton("📢 Duyuru", url="https://t.me/relaxvipduyuru"))
+        markup.add(telebot.types.InlineKeyboardButton("💭 Chat", url="https://t.me/relaxvipchat"))
         bot.send_message(message.chat.id, response, reply_markup=markup)
         return
 
-    gsm = message.text.split()[1] if len(message.text.split()) > 1 else None
+    # GSM numarasını al
+    args = message.text.split()
+    gsm_num = args[1] if len(args) > 1 else None
 
-    if not gsm or not re.match(r'^\d{10}$', gsm) or not gsm.startswith('5') or gsm.startswith('+90'):
-        bot.reply_to(message, '```\nLütfen geçerli bir T.C. Kimlik Numarası girin!\nÖrnek: /gsmtc 5553723339```', parse_mode="Markdown")
+    # Giriş Kontrolü
+    if not gsm_num or not re.match(r'^\d{10}$', gsm_num) or not gsm_num.startswith('5'):
+        bot.reply_to(message, '```\nLütfen geçerli bir GSM numarası girin!\nÖrnek: /gsmtc 5553723339\n(Başında 0 olmadan 10 hane)```', parse_mode="Markdown")
         return
 
-try:
-        api_url = f"https://arastir.vip/api/gsmtc.php?gsm={gsm}"
-        response = requests.get(api_url)
+    # API ve Veri İşleme Kısmı (Artık fonksiyonun içinde)
+    try:
+        api_url = f"https://arastir.vip/api/gsmtc.php?gsm={gsm_num}"
+        response = requests.get(api_url, timeout=10)
         response.raise_for_status()
 
         data = response.json()
         
         if isinstance(data.get("data"), list) and len(data["data"]) > 0:
-            # Birden fazla sonuç çıkma ihtimaline karşı ilk kaydı alıyoruz
             entry = data["data"][0]
 
             result_text = f"```\n╭━━━━━━━━━━━━━━╮\n"
@@ -1645,16 +1645,20 @@ try:
             result_text += f"╭─━━━━━━━━━━━━─╮\n"
             result_text += f"┃➥ T.C Kimlik Numarası: {entry.get('TC', 'Bulunamadı')}\n"
             result_text += f"┃➥ GSM: {entry.get('GSM', 'Bulunamadı')}\n"
-            result_text += f"╰─━━━━━━━━━━━━━─╯```"
+            result_text += f"╰─━━━━━━━━━━━━━─╯
+```"
 
             bot.reply_to(message, result_text, parse_mode="Markdown")
 
-            log_message = f"Yeni GSMTC Sorgu Atıldı!\n\n" \
-                          f"Sorgulanan Numara: {gsm}\n" \
-                          f"Sorgulayan ID: {user_id}\n" \
-                          f"Sorgulayan Adı: {user_name}\n" \
-                          f"Sorgulayan K. Adı: @{username}"
-            bot.send_message(-1003997096434, log_message)
+            # Loglama
+            log_channel = -1003997096434
+            log_message = (f"Yeni GSMTC Sorgu Atıldı!\n\n"
+                           f"Sorgulanan Numara: {gsm_num}\n"
+                           f"Sorgulayan ID: {user_id}\n"
+                           f"Sorgulayan Adı: {user_name}\n"
+                           f"Sorgulayan K. Adı: @{username}")
+            bot.send_message(log_channel, log_message)
+            
         else:
             bot.reply_to(message, '⚠️ *Girdiğiniz Bilgiler ile Eşleşen Biri Bulunamadı!*', parse_mode="Markdown")
 
@@ -1678,58 +1682,62 @@ def tcgsm(message):
     channel_id = -1003920046572
     group_id = -1003913878935
 
+    # Üyelik Kontrolü
     if not is_user_member(user_id, channel_id) or not is_user_member(user_id, group_id):
         response = f"👋 Merhaba {user_name}, ({user_id})! \n\n〽️ Sorgular Ücretsiz Olduğu İçin Kanala Ve Gruba Katılmanız Zorunludur! Kanal Ve Gruba Katılıp Tekrar /start Yazınız."
         markup = telebot.types.InlineKeyboardMarkup()
-        markup.add(
-            telebot.types.InlineKeyboardButton("📢 Duyuru", url="https://t.me/relaxvipduyuru"),
-        )    
-        markup.add(
-            telebot.types.InlineKeyboardButton("💭 Chat", url="https://t.me/relaxvipchat"),
-        ) 
+        markup.add(telebot.types.InlineKeyboardButton("📢 Duyuru", url="https://t.me/relaxvipduyuru"))
+        markup.add(telebot.types.InlineKeyboardButton("💭 Chat", url="https://t.me/relaxvipchat"))
         bot.send_message(message.chat.id, response, reply_markup=markup)
         return
 
-    tc_match = re.match(r'/tcgsm (\d{11})$', message.text)
-    if not tc_match:
-        bot.reply_to(message, '```\nLütfen geçerli bir T.C. Kimlik Numarası girin!\nÖrnek: /tcgsm 11111111110```', parse_mode="Markdown")
+    # Komutu ve TC'yi ayır (re.match yerine daha güvenli yöntem)
+    args = message.text.split()
+    if len(args) < 2 or not args[1].isdigit() or len(args[1]) != 11:
+        bot.reply_to(message, '```\nLütfen geçerli bir T.C. Kimlik Numarası girin!\nÖrnek: /tcgsm 11111111110\n
+```', parse_mode="Markdown")
         return
 
-    tc = tc_match.group(1)
+    tc = args[1]
 
     try:
         api_url = f"https://arastir.vip/api/tcgsm.php?tc={tc}"
-        response = requests.get(api_url)
+        response = requests.get(api_url, timeout=10)
         response.raise_for_status()
-
         data = response.json()
         
-        if "data" in data and len(data["data"]) > 0:
-            result_text = f"```\n╭━━━━━━━━━━━━━━╮\n"
-            result_text += f"┃➥ + Sorgu Başarılı\n"
-            result_text += f"╰━━━━━━━━━━━━━━╯\n"
-            result_text += f"╭━━━━━━━━━━━━━━╮\n"
-            result_text += f"┃➥ T.C Kimlik Numarası: {tc}\n"
+        # API'den gelen veriyi kontrol et
+        if data and "data" in data and len(data["data"]) > 0:
+            result_text = "```\n╭━━━━━━━━━━━━━━╮\n"
+            result_text += "┃➥ + Sorgu Başarılı\n"
+            result_text += "╰━━━━━━━━━━━━━━╯\n"
+            result_text += "╭━━━━━━━━━━━━━━╮\n"
+            result_text += f"┃➥ T.C: {tc}\n"
             
             for index, item in enumerate(data["data"], 1):
-                result_text += f"┃➥ GSM {index}: +90{item['GSM']}\n"
+                gsm_no = item.get('GSM', 'Bulunamadı')
+                result_text += f"┃➥ GSM {index}: {gsm_no}\n"
                 
-            result_text += f"╰─━━━━━━━━━━━━━─╯```"
+            result_text += "╰─━━━━━━━━━━━━━─╯
+```"
 
             bot.reply_to(message, result_text, parse_mode="Markdown")
 
-            log_message = f"Yeni TCGSM Sorgu Atıldı!\n\n" \
-                          f"Sorgulanan Numara: {tc}\n" \
-                          f"Sorgulayan ID: {user_id}\n" \
-                          f"Sorgulayan Adı: {user_name}\n" \
-                          f"Sorgulayan K. Adı: @{username}"
-            bot.send_message(-1003997096434, log_message)
+            # Loglama
+            log_channel = -1003997096434
+            log_message = (f"Yeni TCGSM Sorgu Atıldı!\n\n"
+                           f"Sorgulanan TC: {tc}\n"
+                           f"Sorgulayan ID: {user_id}\n"
+                           f"Sorgulayan Adı: {user_name}\n"
+                           f"Sorgulayan K. Adı: @{username}")
+            bot.send_message(log_channel, log_message)
+            
         else:
-            bot.send_chat_action(message.chat.id, 'typing')
-            bot.reply_to(message, '⚠️ *Girdiğiniz Bilgiler ile Eşleşen Biri Bulunamadı!*', parse_mode="Markdown")
+            bot.reply_to(message, '⚠️ *Girdiğiniz T.C. ile eşleşen GSM kaydı bulunamadı!*', parse_mode="Markdown")
             
     except Exception as e:
-        bot.reply_to(message, "Sistemsel bir hata oluştu veya API yanıt vermiyor.")
+        print(f"Hata: {e}")
+        bot.reply_to(message, "⚠️ Sistemsel bir hata oluştu veya API yanıt vermiyor.")
 
 @bot.message_handler(commands=["ilac"])
 def ilac(message):
