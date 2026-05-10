@@ -1659,7 +1659,7 @@ def gsm(message):
         bot.reply_to(message, f'⚠️ Hata oluştu: {str(e)}')
 
 @bot.message_handler(commands=['tcgsm'])
-def gsm(message):
+def tcgsm(message):
     if message.chat.type != "private":
         return
 
@@ -1670,6 +1670,7 @@ def gsm(message):
     channel_id = -1003920046572
     group_id = -1003913878935
 
+    # Üyelik Kontrolü
     if not is_user_member(user_id, channel_id) or not is_user_member(user_id, group_id):
         response = f"👋 Merhaba {user_name}, ({user_id})! \n\n〽️ Sorgular Ücretsiz Olduğu İçin Kanala Ve Gruba Katılmanız Zorunludur!"
         markup = telebot.types.InlineKeyboardMarkup()
@@ -1677,47 +1678,47 @@ def gsm(message):
         markup.add(telebot.types.InlineKeyboardButton("💭 Chat", url="https://t.me/relaxvipchat"))
         bot.send_message(message.chat.id, response, reply_markup=markup)
         return
-tc_match = re.match(r'/tcgsm (\d{11})$', message.text)
-    if not tc_match:
-        bot.reply_to(message, '```\nLütfen geçerli bir T.C. Kimlik Numarası girin!\nÖrnek: /tcgsm 11111111110```', parse_mode="Markdown")
+
+    # T.C. No Kontrolü (11 hane ve sadece rakam)
+    args = message.text.split()
+    tc_num = args[1] if len(args) > 1 else None
+
+    if not tc_num or not re.match(r'^\d{11}$', tc_num):
+        bot.reply_to(message, '```\nLütfen geçerli bir T.C. Kimlik Numarası girin!\nÖrnek: /tcgsm 11111111110\n```', parse_mode="Markdown")
         return
-    tc = tc_match.group(1)
+
     try:
-        api_url = f"https://arastir.vip/api/tcgsm.php?tc={tc}"
+        api_url = f"https://arastir.vip/api/tcgsm.php?tc={tc_num}"
         response = requests.get(api_url, timeout=10)
         response.raise_for_status()
         data = response.json()
         
         if isinstance(data.get("data"), list) and len(data["data"]) > 0:
             entry = data["data"][0]
-            tc_no = entry.get('GSM', 'Bulunamadı')
-            gsm_no = entry.get('TC', 'Bulunamadı')
+            # API'den gelen verileri alıyoruz
+            tc_no = entry.get('TC', 'Bulunamadı')
+            gsm_no = entry.get('GSM', 'Bulunamadı')
 
-            # Hata veren kısım burasıydı. Üç tırnak kullanarak hatayı imkansız hale getirdik:
             result_text = f"""```
 ╭━━━━━━━━━━━━━━╮
 ┃➥ +  Sorgu Başarılı
 ╰━━━━━━━━━━━━━━╯
 ╭─━━━━━━━━━━━━─╮
-┃➥ GSM: {gsm_no}
 ┃➥ T.C: {tc_no}
+┃➥ GSM: {gsm_no}
 ╰─━━━━━━━━━━━━━─╯
 ```"""
 
             bot.reply_to(message, result_text, parse_mode="Markdown")
 
-            log_message = f"Yeni TCGSM Sorgu Atıldı!\n\n" \
-                          f"Sorgulanan Numara: {tc}\n" \
-                          f"Sorgulayan ID: {user_id}\n" \
-                          f"Sorgulayan Adı: {user_name}\n" \
-                          f"Sorgulayan K. Adı: @{username}"
+            # Loglama
+            log_message = f"Yeni TCGSM Sorgu!\n\nT.C: {tc_num}\nID: {user_id}\nAd: {user_name}\nK.Adı: @{username}"
             bot.send_message(-1003997096434, log_message)         
         else:
             bot.reply_to(message, '⚠️ *Girdiğiniz Bilgiler ile Eşleşen Biri Bulunamadı!*', parse_mode="Markdown")
 
     except Exception as e:
         bot.reply_to(message, f'⚠️ Hata oluştu: {str(e)}')
-
 
 @bot.message_handler(commands=["ilac"])
 def ilac(message):
