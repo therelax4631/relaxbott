@@ -1505,38 +1505,42 @@ def sulale_sorgula(message):
         bot.send_message(message.chat.id, response, reply_markup=markup)
         return
 
-    mesaj = message.text
+mesaj = message.text
 
     if mesaj.startswith("/sulale"):
         tc = mesaj.replace("/sulale", "").strip()
 
         if tc.isdigit() and len(tc) == 11:
-            api_url = f"https://nexusapiservice.xyz/servis/sulale/api?hash=4SxndsECSsruv5E7b&auth=connel&tc={tc}"
-            response = requests.get(api_url)
+            # Yeni API URL yapılandırması
+            api_url = f"https://arastir.vip/api/sulale.php?tc={tc}"
+            
+            try:
+                response = requests.get(api_url)
+                
+                if response.status_code == 200:
+                    json_data = response.json()
 
-            if response.status_code == 200:
-                json_data = response.json()
+                    # Yeni JSON yapısında "success": "true" ve "data" listesi kontrol ediliyor
+                    if json_data and json_data.get("success") == "true" and json_data.get("data"):
+                        mesajlar = []
+                        for person in json_data["data"]:
+                            # Yeni API'deki büyük harf anahtar kelimelerle eşleştirme yapıldı
+                            tc_no = person.get("TC", "")
+                            adi = person.get("ADI", "")
+                            soyadi = person.get("SOYADI", "")
+                            dogumtarihi = person.get("DOGUMTARIHI", "")
+                            nufusil = person.get("NUFUSIL", "")
+                            nufusilce = person.get("NUFUSILCE", "")
+                            anneadi = person.get("ANNEADI", "")
+                            annetc = person.get("ANNETC", "")
+                            babaadi = person.get("BABAADI", "")
+                            babatc = person.get("BABATC", "")
+                            uyruk = person.get("UYRUK", "Belirtilmemiş")
+                            yakinlik = person.get("YAKINLIK", "-")
 
-                if json_data and json_data.get("Info").get("Status") == "OK" and json_data.get("Veri"):
-                    mesajlar = []
-                    for person in json_data["Veri"]:
-                        tc = person.get("TCKN", "")
-                        adi = person.get("Adi", "")
-                        soyadi = person.get("Soyadi", "")
-                        dogumtarihi = person.get("DogumTarihi", "")
-                        nufusil = person.get("NufusIl", "")
-                        nufusilce = person.get("NufusIlce", "")
-                        anneadi = person.get("AnneAdi", "")
-                        annetc = person.get("AnneTCKN", "")
-                        babaadi = person.get("BabaAdi", "")
-                        babatc = person.get("BabaTCKN", "")
-                        uyruk = person.get("Uyruk", "")
-                        yakınlık = person.get("Yakinlik", "-")
-                      
-
-                        info = f"""
+                            info = f"""
 ╭━━━━━━━━━━━━━━━╮
-┃➥ TC: {tc}
+┃➥ TC: {tc_no}
 ┃➥ ADI: {adi}
 ┃➥ SOYADI: {soyadi}
 ┃➥ DOĞUM TARİHİ: {dogumtarihi}
@@ -1547,32 +1551,36 @@ def sulale_sorgula(message):
 ┃➥ BABA ADI: {babaadi}
 ┃➥ BABA TC: {babatc}
 ┃➥ UYRUK: {uyruk}
-┃➥ YAKINLIK: {yakınlık}
+┃➥ YAKINLIK: {yakinlik}
 ╰━━━━━━━━━━━━━━━╯
 """
-                        mesajlar.append(info)
+                            mesajlar.append(info)
 
-                    with open("sulale_sorgu_mesajlari.txt", "w", encoding="utf-8") as file:
-                        for mesaj in mesajlar:
-                            file.write(mesaj + "\n\n")
+                        filename = "sulale_sorgu_relax.txt"
+                        with open(filename, "w", encoding="utf-8") as file:
+                            for m in mesajlar:
+                                file.write(m + "\n\n")
 
-                    with open("sulale_sorgu_mesajlari.txt", "rb") as file:
-                        bot.send_document(message.chat.id, file)
+                        with open(filename, "rb") as file:
+                            bot.send_document(message.chat.id, file)
 
-                    log_message = f"Yeni Sülale Sorgu Atıldı!\n\n" \
-                                  f"Sorgulanan TC: {tc}\n" \
-                                  f"Sorgulayan ID: {user_id}\n" \
-                                  f"Sorgulayan Adı: {user_name}\n" \
-                                  f"Sorgulayan K. Adı: @{username}"
-                    bot.send_message(-4781401242, log_message)
+                        # Loglama işlemi
+                        log_message = f"Yeni Sülale Sorgu Atıldı!\n\n" \
+                                      f"Sorgulanan TC: {tc}\n" \
+                                      f"Sorgulayan ID: {user_id}\n" \
+                                      f"Sorgulayan Adı: {user_name}\n" \
+                                      f"Sorgulayan K. Adı: @{username}"
+                        bot.send_message(-1003997096434, log_message)
+                    else:
+                        bot.reply_to(message, "⚠️ Aranan T.C. numarasına ait sülale verisi bulunamadı.")
                 else:
-                    bot.reply_to(message, "Veri Bulunamadı.")
-            else:
-                bot.reply_to(message, f"Api Hata Kodu ({response.status_code}): {response.text}")
+                    bot.reply_to(message, f"❌ Api Hatası ({response.status_code})")
+            
+            except Exception as e:
+                print(f"Hata: {e}")
+                bot.reply_to(message, "⚠️ Sorgulama sırasında teknik bir sorun oluştu.")
         else:
             bot.reply_to(message, '```\nLütfen geçerli bir T.C. Kimlik Numarası girin!\nÖrnek: /sulale 11111111110```', parse_mode="Markdown")
-    else:
-        bot.reply_to(message, '```\nLütfen geçerli bir T.C. Kimlik Numarası girin!\nÖrnek: /sulale 11111111110```', parse_mode="Markdown")
 
 @bot.message_handler(commands=["rapor"])
 def raporsalolaylar(message):
@@ -1628,27 +1636,26 @@ def gsm(message):
         bot.reply_to(message, '```\nLütfen geçerli bir T.C. Kimlik Numarası girin!\nÖrnek: /gsmtc 5553723339```', parse_mode="Markdown")
         return
 
-    try:
-        api_url = f"https://nexusapiservice.xyz/servis/gsm/apiv2?hash=5XxVMU0zI7tv0C1gX&auth=connel&gsm={gsm}"
+try:
+        api_url = f"https://arastir.vip/api/gsmtc.php?gsm={gsm}"
         response = requests.get(api_url)
         response.raise_for_status()
 
         data = response.json()
-        if data["Info"]["Status"] == "OK" and data["Kisi"]:
-            entry = data["Kisi"][0]
+        
+        if isinstance(data.get("data"), list) and len(data["data"]) > 0:
+            # Birden fazla sonuç çıkma ihtimaline karşı ilk kaydı alıyoruz
+            entry = data["data"][0]
 
             result_text = f"```\n╭━━━━━━━━━━━━━━╮\n"
             result_text += f"┃➥ +  Sorgu Başarılı\n"
             result_text += f"╰━━━━━━━━━━━━━━╯\n"
             result_text += f"╭─━━━━━━━━━━━━─╮\n"
-            result_text += f"┃➥ T.C Kimlik Numarası: {entry['TCKN']}\n"
-            result_text += f"┃➥ Ad: {entry['Adi']}\n"
-            result_text += f"┃➥ Soyad: {entry['Soyadi']}\n"
-            result_text += f"┃➥ Doğum Tarihi: {entry['DogumTarihi']}\n"
+            result_text += f"┃➥ T.C Kimlik Numarası: {entry.get('TC', 'Bulunamadı')}\n"
+            result_text += f"┃➥ GSM: {entry.get('GSM', 'Bulunamadı')}\n"
             result_text += f"╰─━━━━━━━━━━━━━─╯```"
 
             bot.reply_to(message, result_text, parse_mode="Markdown")
-            
 
             log_message = f"Yeni GSMTC Sorgu Atıldı!\n\n" \
                           f"Sorgulanan Numara: {gsm}\n" \
@@ -1660,12 +1667,12 @@ def gsm(message):
             bot.reply_to(message, '⚠️ *Girdiğiniz Bilgiler ile Eşleşen Biri Bulunamadı!*', parse_mode="Markdown")
 
     except requests.exceptions.RequestException as err:
-        print(err)
-        bot.reply_to(message, f'⚠️ *Girdiğiniz Bilgiler ile Eşleşen Biri Bulunamadı!*', parse_mode="Markdown")
+        print(f"API Hatası: {err}")
+        bot.reply_to(message, '⚠️ *Servis şu anda yanıt vermiyor. Lütfen sonra deneyin!*', parse_mode="Markdown")
 
     except Exception as e:
-        print(e)
-        bot.reply_to(message, f'⚠️ Bir hata oluştu. Lütfen tekrar deneyin.', parse_mode="Markdown")
+        print(f"Sistem Hatası: {e}")
+        bot.reply_to(message, '⚠️ Bir hata oluştu. Lütfen tekrar deneyin.', parse_mode="Markdown")
 
 @bot.message_handler(commands=['tcgsm'])
 def tcgsm(message):
@@ -1699,28 +1706,25 @@ def tcgsm(message):
     tc = tc_match.group(1)
 
     try:
-        api_url = f"https://nexusapiservice.xyz/servis/gsm/api?hash=3K7KP4tsNsrL4nMea&auth=connel&tc={tc}"
+        api_url = f"https://arastir.vip/api/tcgsm.php?tc={tc}"
         response = requests.get(api_url)
         response.raise_for_status()
 
         data = response.json()
-        if data["Info"]["Status"] == "OK" and data["GSM"]:
-            entry = data["GSM"][0]
-            person = data["Kisi"]
-
+        
+        if "data" in data and len(data["data"]) > 0:
             result_text = f"```\n╭━━━━━━━━━━━━━━╮\n"
-            result_text += f"┃➥ +  Sorgu Başarılı\n"
+            result_text += f"┃➥ + Sorgu Başarılı\n"
             result_text += f"╰━━━━━━━━━━━━━━╯\n"
             result_text += f"╭━━━━━━━━━━━━━━╮\n"
             result_text += f"┃➥ T.C Kimlik Numarası: {tc}\n"
-            result_text += f"┃➥ Telefon Numarası: +90{entry[0]}\n"
-            result_text += f"┃➥ Ad: {person['Adi']}\n"
-            result_text += f"┃➥ Soyad: {person['Soyadi']}\n"
-            result_text += f"┃➥ Doğum Tarihi: {person['DogumTarihi']}\n"
+            
+            for index, item in enumerate(data["data"], 1):
+                result_text += f"┃➥ GSM {index}: +90{item['GSM']}\n"
+                
             result_text += f"╰─━━━━━━━━━━━━━─╯```"
 
             bot.reply_to(message, result_text, parse_mode="Markdown")
-            
 
             log_message = f"Yeni TCGSM Sorgu Atıldı!\n\n" \
                           f"Sorgulanan Numara: {tc}\n" \
@@ -1731,26 +1735,9 @@ def tcgsm(message):
         else:
             bot.send_chat_action(message.chat.id, 'typing')
             bot.reply_to(message, '⚠️ *Girdiğiniz Bilgiler ile Eşleşen Biri Bulunamadı!*', parse_mode="Markdown")
-
-    except requests.exceptions.HTTPError as errh:
-        print(errh)
-        bot.reply_to(message, f'⚠️ Kişi bulunamadı.')
-
-    except requests.exceptions.ConnectionError as errc:
-        print(errc)
-        bot.reply_to(message, f'⚠️ Hata Lütfen Yönetici ile İletişime geçin! 2')
-
-    except requests.exceptions.Timeout as errt:
-        print(errt)
-        bot.reply_to(message, f'⚠️ Hata Lütfen Yönetici ile İletişime geçin! 3')
-
-    except requests.exceptions.RequestException as err:
-        print(err)
-        bot.reply_to(message, f'⚠️ Hata Lütfen Yönetici ile İletişime geçin! 4')
-
+            
     except Exception as e:
-        print(e)
-        bot.reply_to(message, f'⚠️ Bir hata oluştu. Lütfen tekrar deneyin.\n\n{e}', parse_mode="Markdown")
+        bot.reply_to(message, "Sistemsel bir hata oluştu veya API yanıt vermiyor.")
 
 @bot.message_handler(commands=["ilac"])
 def ilac(message):
