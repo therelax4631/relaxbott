@@ -1599,7 +1599,7 @@ def ilac(message):
     bot.send_message(message.chat.id, response, reply_markup=markup)
         
 @bot.message_handler(commands=['gsmtc'])
-def gsm(message):
+def gsmtc(message):
     if message.chat.type != "private":
         return
 
@@ -1610,6 +1610,7 @@ def gsm(message):
     channel_id = -1003920046572
     group_id = -1003913878935
 
+    # Üyelik Kontrolü
     if not is_user_member(user_id, channel_id) or not is_user_member(user_id, group_id):
         response = f"👋 Merhaba {user_name}, ({user_id})! \n\n〽️ Sorgular Ücretsiz Olduğu İçin Kanala Ve Gruba Katılmanız Zorunludur!"
         markup = telebot.types.InlineKeyboardMarkup()
@@ -1621,35 +1622,44 @@ def gsm(message):
     args = message.text.split()
     gsm_num = args[1] if len(args) > 1 else None
 
-    if not gsm_num or not re.match(r'^\d{10}$', gsm_num) or not gsm_num.startswith('5'):
+    # Numara Kontrolü (5 ile başlamalı ve 10 hane olmalı)
+    if not gsm_num or not re.match(r'^5\d{9}$', gsm_num):
         bot.reply_to(message, '```\nLütfen geçerli bir GSM numarası girin!\nÖrnek: /gsmtc 5553723339\n```', parse_mode="Markdown")
         return
 
     try:
         api_url = f"https://arastir.vip/api/gsmtc.php?gsm={gsm_num}"
-        response = requests.get(api_url, timeout=10)
+        
+        # 403 Forbidden hatasını aşmak için Header
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
+        }
+        
+        response = requests.get(api_url, headers=headers, timeout=10)
         response.raise_for_status()
         data = response.json()
         
         if isinstance(data.get("data"), list) and len(data["data"]) > 0:
             entry = data["data"][0]
-            tc_no = entry.get('TC', 'Bulunamadı')
-            gsm_no = entry.get('GSM', 'Bulunamadı')
+            
+            # API küçük harf döndürdüğü için tc ve gsm anahtarlarını çekiyoruz
+            tc_no = entry.get('tc') or entry.get('TC') or "Bulunamadı"
+            gsm_no = entry.get('gsm') or entry.get('GSM') or "Bulunamadı"
 
-            # Hata veren kısım burasıydı. Üç tırnak kullanarak hatayı imkansız hale getirdik:
-            result_text = f"""```
-╭━━━━━━━━━━━━━━╮
-┃➥ +  Sorgu Başarılı
-╰━━━━━━━━━━━━━━╯
-╭─━━━━━━━━━━━━─╮
-┃➥ T.C: {tc_no}
-┃➥ GSM: {gsm_no}
-╰─━━━━━━━━━━━━━─╯
-```"""
+            result_text = f"```\n" \
+                          f"╭━━━━━━━━━━━━━━╮\n" \
+                          f"┃➥ +  Sorgu Başarılı\n" \
+                          f"╰━━━━━━━━━━━━━━╯\n" \
+                          f"╭─━━━━━━━━━━━━─╮\n" \
+                          f"┃➥ T.C: {tc_no}\n" \
+                          f"┃➥ GSM: {gsm_no}\n" \
+                          f"╰─━━━━━━━━━━━━━─╯\n" \
+                          f"```"
 
             bot.reply_to(message, result_text, parse_mode="Markdown")
 
-            log_message = f"Yeni GSMTC Sorgu!\n\nNumara: {gsm_num}\nID: {user_id}\nAd: {user_name}"
+            # Loglama
+            log_message = f"Yeni GSMTC Sorgu!\n\nNumara: {gsm_num}\nID: {user_id}\nAd: {user_name}\nK.Adı: @{username}"
             bot.send_message(-1003997096434, log_message)
             
         else:
@@ -1679,7 +1689,7 @@ def tcgsm(message):
         bot.send_message(message.chat.id, response, reply_markup=markup)
         return
 
-    # T.C. No Kontrolü (11 hane ve sadece rakam)
+    # T.C. No Kontrolü
     args = message.text.split()
     tc_num = args[1] if len(args) > 1 else None
 
@@ -1689,25 +1699,33 @@ def tcgsm(message):
 
     try:
         api_url = f"https://arastir.vip/api/tcgsm.php?tc={tc_num}"
-        response = requests.get(api_url, timeout=10)
+        
+        # 403 hatasını aşmak için User-Agent
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
+        }
+        
+        response = requests.get(api_url, headers=headers, timeout=10)
         response.raise_for_status()
         data = response.json()
         
         if isinstance(data.get("data"), list) and len(data["data"]) > 0:
             entry = data["data"][0]
-            # API'den gelen verileri alıyoruz
-            tc_no = entry.get('TC', 'Bulunamadı')
-            gsm_no = entry.get('GSM', 'Bulunamadı')
+            
+            # Verileri küçük harf (tc, gsm) olarak çekiyoruz
+            tc_no = entry.get('tc') or entry.get('TC') or "Bulunamadı"
+            gsm_no = entry.get('gsm') or entry.get('GSM') or "Bulunamadı"
 
-            result_text = f"""```
-╭━━━━━━━━━━━━━━╮
-┃➥ +  Sorgu Başarılı
-╰━━━━━━━━━━━━━━╯
-╭─━━━━━━━━━━━━─╮
-┃➥ T.C: {tc_no}
-┃➥ GSM: {gsm_no}
-╰─━━━━━━━━━━━━━─╯
-```"""
+            result_text = f"
+```\n" \
+                          f"╭━━━━━━━━━━━━━━╮\n" \
+                          f"┃➥ +  Sorgu Başarılı\n" \
+                          f"╰━━━━━━━━━━━━━━╯\n" \
+                          f"╭─━━━━━━━━━━━━─╮\n" \
+                          f"┃➥ T.C: {tc_no}\n" \
+                          f"┃➥ GSM: {gsm_no}\n" \
+                          f"╰─━━━━━━━━━━━━━─╯\n" \
+                          f"```"
 
             bot.reply_to(message, result_text, parse_mode="Markdown")
 
