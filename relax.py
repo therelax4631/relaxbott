@@ -1665,21 +1665,17 @@ def tcgsm(message):
 
     user_id = message.from_user.id
     user_name = message.from_user.first_name
-    username = message.from_user.username
-
+    
     channel_id = -1003920046572
     group_id = -1003913878935
 
-    # Kanal Kontrol
     if not is_user_member(user_id, channel_id) or not is_user_member(user_id, group_id):
-        response = f"Merhaba {user_name}! Sorgu icin kanala katilmalisiniz."
-        bot.send_message(message.chat.id, response)
+        bot.send_message(message.chat.id, "Kanala katilin.")
         return
 
-    # Veri Alma
     args = message.text.split()
     if len(args) < 2 or not args[1].isdigit() or len(args[1]) != 11:
-        bot.reply_to(message, "Lutfen 11 haneli TC girin. Ornek: /tcgsm 11111111110")
+        bot.reply_to(message, "Gecerli TC girin.")
         return
 
     tc = args[1]
@@ -1690,25 +1686,28 @@ def tcgsm(message):
         data = response.json()
         
         if data and "data" in data and len(data["data"]) > 0:
-            # Hata ihtimalini sifira indirmek icin duz metin yapisi
-            sonuc = f"TCGSM Sorgu Basarili\n\nTC: {tc}\n"
+            sonuc_listesi = []
+            sonuc_listesi.append("TCGSM SONUC")
+            sonuc_listesi.append(f"TC: {tc}")
             
             for index, item in enumerate(data["data"], 1):
-                gsm_no = item.get('GSM', 'Bulunamadi')
-                sonuc += f"GSM {index}: {gsm_no}\n"
+                gsm = item.get('GSM', 'Bulunamadi')
+                sonuc_listesi.append(f"GSM {index}: {gsm}")
             
-            bot.reply_to(message, f"```\n{sonuc}\n
+            # \n karakterini string icinde degil, join fonksiyonuyla basiyoruz
+            # Bu sayede editörün kodu asagi kirmasini engelliyoruz
+            cikti = "\n".join(sonuc_listesi)
+            bot.reply_to(message, f"```\n{cikti}\n
 ```", parse_mode="Markdown")
 
-            # Log
-            log_msg = f"TCGSM Sorgu: {tc} | ID: {user_id}"
+            log_msg = f"TCGSM: {tc} | ID: {user_id}"
             bot.send_message(-1003997096434, log_msg)
             
         else:
-            bot.reply_to(message, "Veri bulunamadi.")
+            bot.reply_to(message, "Kayit yok.")
             
     except Exception as e:
-        bot.reply_to(message, "Sistem hatasi.")
+        bot.reply_to(message, "Hata olustu.")
 
 @bot.message_handler(commands=["ilac"])
 def ilac(message):
