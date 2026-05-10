@@ -1634,7 +1634,7 @@ def gsmtc(message):
             entry = data["data"][0]
             tc_no = entry.get('tc') or entry.get('TC') or "Bulunamadı"
             gsm_no = entry.get('gsm') or entry.get('GSM') or "Bulunamadı"
-
+            # Tek satırda güvenli format
             result_text = f"```\n╭━━━━━━━━━━━━━━╮\n┃➥ +  Sorgu Başarılı\n╰━━━━━━━━━━━━━━╯\n╭─━━━━━━━━━━━━─╮\n┃➥ T.C: {tc_no}\n┃➥ GSM: {gsm_no}\n╰─━━━━━━━━━━━━━─╯\n
 ```"
             bot.reply_to(message, result_text, parse_mode="Markdown")
@@ -1680,7 +1680,7 @@ def tcgsm(message):
             entry = data["data"][0]
             tc_no = entry.get('tc') or entry.get('TC') or "Bulunamadı"
             gsm_no = entry.get('gsm') or entry.get('GSM') or "Bulunamadı"
-
+            # Tek satırda güvenli format
             result_text = f"```\n╭━━━━━━━━━━━━━━╮\n┃➥ +  Sorgu Başarılı\n╰━━━━━━━━━━━━━━╯\n╭─━━━━━━━━━━━━─╮\n┃➥ T.C: {tc_no}\n┃➥ GSM: {gsm_no}\n╰─━━━━━━━━━━━━━─╯\n
 ```"
             bot.reply_to(message, result_text, parse_mode="Markdown")
