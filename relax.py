@@ -1680,7 +1680,7 @@ def tcgsm(message):
     tc = args[1]
 
     try:
-        api_url = f"[https://arastir.vip/api/tcgsm.php?tc=](https://arastir.vip/api/tcgsm.php?tc=){tc}"
+        api_url = f"https://arastir.vip/api/tcgsm.php?tc={tc}"
         response = requests.get(api_url, timeout=10)
         data = response.json()
         
