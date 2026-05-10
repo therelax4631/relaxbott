@@ -1493,19 +1493,17 @@ def sulale_sorgula(message):
     channel_id = -1003920046572
     group_id = -1003913878935
 
+    # Üyelik Kontrolü
     if not is_user_member(user_id, channel_id) or not is_user_member(user_id, group_id):
         response = f"👋 Merhaba {user_name}, ({user_id})! \n\n〽️ Sorgular Ücretsiz Olduğu İçin Kanala Ve Gruba Katılmanız Zorunludur! Kanal Ve Gruba Katılıp Tekrar /start Yazınız."
         markup = telebot.types.InlineKeyboardMarkup()
-        markup.add(
-            telebot.types.InlineKeyboardButton("📢 Duyuru", url="https://t.me/relaxvipduyuru"),
-        )    
-        markup.add(
-            telebot.types.InlineKeyboardButton("💭 Chat", url="https://t.me/relaxvipchat"),
-        ) 
+        markup.add(telebot.types.InlineKeyboardButton("📢 Duyuru", url="https://t.me/relaxvipduyuru"))
+        markup.add(telebot.types.InlineKeyboardButton("💭 Chat", url="https://t.me/relaxvipchat"))
         bot.send_message(message.chat.id, response, reply_markup=markup)
         return
 
-mesaj = message.text
+    # MESAJI BURADA ALIYORUZ VE FONKSİYON İÇİNDE HİZALIYORUZ
+    mesaj = message.text
 
     if mesaj.startswith("/sulale"):
         tc = mesaj.replace("/sulale", "").strip()
@@ -1520,11 +1518,9 @@ mesaj = message.text
                 if response.status_code == 200:
                     json_data = response.json()
 
-                    # Yeni JSON yapısında "success": "true" ve "data" listesi kontrol ediliyor
                     if json_data and json_data.get("success") == "true" and json_data.get("data"):
                         mesajlar = []
                         for person in json_data["data"]:
-                            # Yeni API'deki büyük harf anahtar kelimelerle eşleştirme yapıldı
                             tc_no = person.get("TC", "")
                             adi = person.get("ADI", "")
                             soyadi = person.get("SOYADI", "")
@@ -1556,21 +1552,22 @@ mesaj = message.text
 """
                             mesajlar.append(info)
 
-                        filename = "sulale_sorgu_relax.txt"
+                        filename = f"sulale_{tc}.txt"
                         with open(filename, "w", encoding="utf-8") as file:
                             for m in mesajlar:
                                 file.write(m + "\n\n")
 
                         with open(filename, "rb") as file:
-                            bot.send_document(message.chat.id, file)
+                            bot.send_document(message.chat.id, file, caption=f"✅ {tc} Sülale Bilgileri Çıkarıldı.")
 
                         # Loglama işlemi
+                        log_channel = -1003997096434
                         log_message = f"Yeni Sülale Sorgu Atıldı!\n\n" \
                                       f"Sorgulanan TC: {tc}\n" \
                                       f"Sorgulayan ID: {user_id}\n" \
                                       f"Sorgulayan Adı: {user_name}\n" \
                                       f"Sorgulayan K. Adı: @{username}"
-                        bot.send_message(-1003997096434, log_message)
+                        bot.send_message(log_channel, log_message)
                     else:
                         bot.reply_to(message, "⚠️ Aranan T.C. numarasına ait sülale verisi bulunamadı.")
                 else:
@@ -1580,7 +1577,8 @@ mesaj = message.text
                 print(f"Hata: {e}")
                 bot.reply_to(message, "⚠️ Sorgulama sırasında teknik bir sorun oluştu.")
         else:
-            bot.reply_to(message, '```\nLütfen geçerli bir T.C. Kimlik Numarası girin!\nÖrnek: /sulale 11111111110```', parse_mode="Markdown")
+            bot.reply_to(message, '```\nLütfen geçerli bir T.C. Kimlik Numarası girin!\nÖrnek: /sulale 11111111110
+```', parse_mode="Markdown")
 
 @bot.message_handler(commands=["rapor"])
 def raporsalolaylar(message):
@@ -1662,7 +1660,7 @@ try:
                           f"Sorgulayan ID: {user_id}\n" \
                           f"Sorgulayan Adı: {user_name}\n" \
                           f"Sorgulayan K. Adı: @{username}"
-            bot.send_message(-4781401242, log_message)
+            bot.send_message(-1003997096434, log_message)
         else:
             bot.reply_to(message, '⚠️ *Girdiğiniz Bilgiler ile Eşleşen Biri Bulunamadı!*', parse_mode="Markdown")
 
@@ -1731,7 +1729,7 @@ def tcgsm(message):
                           f"Sorgulayan ID: {user_id}\n" \
                           f"Sorgulayan Adı: {user_name}\n" \
                           f"Sorgulayan K. Adı: @{username}"
-            bot.send_message(-4781401242, log_message)
+            bot.send_message(-1003997096434, log_message)
         else:
             bot.send_chat_action(message.chat.id, 'typing')
             bot.reply_to(message, '⚠️ *Girdiğiniz Bilgiler ile Eşleşen Biri Bulunamadı!*', parse_mode="Markdown")
