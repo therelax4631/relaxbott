@@ -1679,11 +1679,14 @@ def tcgsm(message):
         bot.send_message(message.chat.id, response, reply_markup=markup)
         return
 
-    # Komutu ve TC'yi ayır (re.match yerine daha güvenli yöntem)
+    # Komutu ve TC'yi ayır
     args = message.text.split()
     if len(args) < 2 or not args[1].isdigit() or len(args[1]) != 11:
-        bot.reply_to(message, '```\nLütfen geçerli bir T.C. Kimlik Numarası girin!\nÖrnek: /tcgsm 11111111110\n
-```', parse_mode="Markdown")
+        error_msg = """```
+Lütfen geçerli bir T.C. Kimlik Numarası girin!
+Örnek: /tcgsm 11111111110
+```"""
+        bot.reply_to(message, error_msg, parse_mode="Markdown")
         return
 
     tc = args[1]
@@ -1694,21 +1697,26 @@ def tcgsm(message):
         response.raise_for_status()
         data = response.json()
         
-        # API'den gelen veriyi kontrol et
         if data and "data" in data and len(data["data"]) > 0:
-            result_text = "```\n╭━━━━━━━━━━━━━━╮\n"
-            result_text += "┃➥ + Sorgu Başarılı\n"
-            result_text += "╰━━━━━━━━━━━━━━╯\n"
-            result_text += "╭━━━━━━━━━━━━━━╮\n"
-            result_text += f"┃➥ T.C: {tc}\n"
+            # Metni oluştururken en güvenli yöntem:
+            lines = [
+                "```",
+                "╭━━━━━━━━━━━━━━╮",
+                "┃➥ + Sorgu Başarılı",
+                "╰━━━━━━━━━━━━━━╯",
+                "╭━━━━━━━━━━━━━━╮",
+                f"┃➥ T.C: {tc}"
+            ]
             
             for index, item in enumerate(data["data"], 1):
                 gsm_no = item.get('GSM', 'Bulunamadı')
-                result_text += f"┃➥ GSM {index}: {gsm_no}\n"
+                lines.append(f"┃➥ GSM {index}: {gsm_no}")
                 
-            result_text += "╰─━━━━━━━━━━━━━─╯
-```"
-
+            lines.append("╰─━━━━━━━━━━━━━─╯")
+            lines.append("
+```")
+            
+            result_text = "\n".join(lines)
             bot.reply_to(message, result_text, parse_mode="Markdown")
 
             # Loglama
@@ -1721,7 +1729,7 @@ def tcgsm(message):
             bot.send_message(log_channel, log_message)
             
         else:
-            bot.reply_to(message, '⚠️ *Girdiğiniz T.C. ile eşleşen GSM kaydı bulunamadı!*', parse_mode="Markdown")
+            bot.reply_to(message, "⚠️ *Girdiğiniz T.C. ile eşleşen GSM kaydı bulunamadı!*", parse_mode="Markdown")
             
     except Exception as e:
         print(f"Hata: {e}")
