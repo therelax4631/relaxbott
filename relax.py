@@ -1659,53 +1659,65 @@ def gsm(message):
         bot.reply_to(message, f'⚠️ Hata oluştu: {str(e)}')
 
 @bot.message_handler(commands=['tcgsm'])
-def tcgsm(message):
+def gsm(message):
     if message.chat.type != "private":
         return
 
     user_id = message.from_user.id
-    
+    user_name = message.from_user.first_name
+    username = message.from_user.username
+
     channel_id = -1003920046572
     group_id = -1003913878935
 
     if not is_user_member(user_id, channel_id) or not is_user_member(user_id, group_id):
-        bot.send_message(message.chat.id, "Kanala katilin.")
+        response = f"👋 Merhaba {user_name}, ({user_id})! \n\n〽️ Sorgular Ücretsiz Olduğu İçin Kanala Ve Gruba Katılmanız Zorunludur!"
+        markup = telebot.types.InlineKeyboardMarkup()
+        markup.add(telebot.types.InlineKeyboardButton("📢 Duyuru", url="https://t.me/relaxvipduyuru"))
+        markup.add(telebot.types.InlineKeyboardButton("💭 Chat", url="https://t.me/relaxvipchat"))
+        bot.send_message(message.chat.id, response, reply_markup=markup)
         return
-
-    args = message.text.split()
-    if len(args) < 2 or not args[1].isdigit() or len(args[1]) != 11:
-        bot.reply_to(message, "Gecerli TC girin.")
+tc_match = re.match(r'/tcgsm (\d{11})$', message.text)
+    if not tc_match:
+        bot.reply_to(message, '```\nLütfen geçerli bir T.C. Kimlik Numarası girin!\nÖrnek: /tcgsm 11111111110```', parse_mode="Markdown")
         return
-
-    tc = args[1]
-
+    tc = tc_match.group(1)
     try:
         api_url = f"https://arastir.vip/api/tcgsm.php?tc={tc}"
         response = requests.get(api_url, timeout=10)
+        response.raise_for_status()
         data = response.json()
         
-        if data and "data" in data and len(data["data"]) > 0:
-            sonuc_listesi = []
-            sonuc_listesi.append("TCGSM SONUC")
-            sonuc_listesi.append(f"TC: {tc}")
-            
-            for index, item in enumerate(data["data"], 1):
-                gsm = item.get('GSM', 'Bulunamadi')
-                sonuc_listesi.append(f"GSM {index}: {gsm}")
+        if isinstance(data.get("data"), list) and len(data["data"]) > 0:
+            entry = data["data"][0]
+            tc_no = entry.get('GSM', 'Bulunamadı')
+            gsm_no = entry.get('TC', 'Bulunamadı')
 
-            icerik = "\n".join(sonuc_listesi)
-            final_msg = "```\n" + icerik + "\n```"
-            
-            bot.reply_to(message, final_msg, parse_mode="Markdown")
+            # Hata veren kısım burasıydı. Üç tırnak kullanarak hatayı imkansız hale getirdik:
+            result_text = f"""```
+╭━━━━━━━━━━━━━━╮
+┃➥ +  Sorgu Başarılı
+╰━━━━━━━━━━━━━━╯
+╭─━━━━━━━━━━━━─╮
+┃➥ GSM: {gsm_no}
+┃➥ T.C: {tc_no}
+╰─━━━━━━━━━━━━━─╯
+```"""
 
-            log_msg = f"TCGSM: {tc} | ID: {user_id}"
-            bot.send_message(-1003997096434, log_msg)
-            
+            bot.reply_to(message, result_text, parse_mode="Markdown")
+
+            log_message = f"Yeni TCGSM Sorgu Atıldı!\n\n" \
+                          f"Sorgulanan Numara: {tc}\n" \
+                          f"Sorgulayan ID: {user_id}\n" \
+                          f"Sorgulayan Adı: {user_name}\n" \
+                          f"Sorgulayan K. Adı: @{username}"
+            bot.send_message(-1003997096434, log_message)         
         else:
-            bot.reply_to(message, "Kayit yok.")
-            
+            bot.reply_to(message, '⚠️ *Girdiğiniz Bilgiler ile Eşleşen Biri Bulunamadı!*', parse_mode="Markdown")
+
     except Exception as e:
-        bot.reply_to(message, "Hata olustu.")
+        bot.reply_to(message, f'⚠️ Hata oluştu: {str(e)}')
+
 
 @bot.message_handler(commands=["ilac"])
 def ilac(message):
