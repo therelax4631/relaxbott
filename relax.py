@@ -1502,14 +1502,13 @@ def sulale_sorgula(message):
         bot.send_message(message.chat.id, response, reply_markup=markup)
         return
 
-    # MESAJI BURADA ALIYORUZ VE FONKSİYON İÇİNDE HİZALIYORUZ
     mesaj = message.text
 
     if mesaj.startswith("/sulale"):
         tc = mesaj.replace("/sulale", "").strip()
 
         if tc.isdigit() and len(tc) == 11:
-            # Yeni API URL yapılandırması
+            # API URL
             api_url = f"https://arastir.vip/api/sulale.php?tc={tc}"
             
             try:
@@ -1560,13 +1559,9 @@ def sulale_sorgula(message):
                         with open(filename, "rb") as file:
                             bot.send_document(message.chat.id, file, caption=f"✅ {tc} Sülale Bilgileri Çıkarıldı.")
 
-                        # Loglama işlemi
+                        # Loglama
                         log_channel = -1003997096434
-                        log_message = f"Yeni Sülale Sorgu Atıldı!\n\n" \
-                                      f"Sorgulanan TC: {tc}\n" \
-                                      f"Sorgulayan ID: {user_id}\n" \
-                                      f"Sorgulayan Adı: {user_name}\n" \
-                                      f"Sorgulayan K. Adı: @{username}"
+                        log_message = f"Yeni Sülale Sorgu Atıldı!\n\nSorgulanan TC: {tc}\nSorgulayan ID: {user_id}\nSorgulayan Adı: {user_name}"
                         bot.send_message(log_channel, log_message)
                     else:
                         bot.reply_to(message, "⚠️ Aranan T.C. numarasına ait sülale verisi bulunamadı.")
@@ -1574,11 +1569,10 @@ def sulale_sorgula(message):
                     bot.reply_to(message, f"❌ Api Hatası ({response.status_code})")
             
             except Exception as e:
-                print(f"Hata: {e}")
                 bot.reply_to(message, "⚠️ Sorgulama sırasında teknik bir sorun oluştu.")
         else:
-bot.reply_to(message, '```\nLütfen geçerli bir T.C. Kimlik Numarası girin!\nÖrnek: /sulale 11111111110\n
-```', parse_mode="Markdown")
+            # Hatalı olan kısım burasıydı, düzeltildi:
+            bot.reply_to(message, '```\nLütfen geçerli bir T.C. Kimlik Numarası girin!\nÖrnek: /sulale 11111111110\n```', parse_mode="Markdown")
 
 @bot.message_handler(commands=["rapor"])
 def raporsalolaylar(message):
