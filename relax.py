@@ -1636,27 +1636,24 @@ def gsm(message):
             tc_no = entry.get('TC', 'Bulunamadı')
             gsm_no = entry.get('GSM', 'Bulunamadı')
 
-            # Hata veren kısım burasıydı, en temiz haliyle düzelttim:
-            result_text = (
-                "```\n"
-                "╭━━━━━━━━━━━━━━╮\n"
-                "┃➥ +  Sorgu Başarılı\n"
-                "╰━━━━━━━━━━━━━━╯\n"
-                "╭─━━━━━━━━━━━━─╮\n"
-                f"┃➥ T.C: {tc_no}\n"
-                f"┃➥ GSM: {gsm_no}\n"
-                "╰─━━━━━━━━━━━━━─╯\n"
-                "
-```"
-            )
+            # Hata veren kısım burasıydı. Üç tırnak kullanarak hatayı imkansız hale getirdik:
+            result_text = f"""```
+╭━━━━━━━━━━━━━━╮
+┃➥ +  Sorgu Başarılı
+╰━━━━━━━━━━━━━━╯
+╭─━━━━━━━━━━━━─╮
+┃➥ T.C: {tc_no}
+┃➥ GSM: {gsm_no}
+╰─━━━━━━━━━━━━━─╯
+```"""
 
             bot.reply_to(message, result_text, parse_mode="Markdown")
 
-            log_message = (f"Yeni GSMTC Sorgu!\n\nNumara: {gsm_num}\nID: {user_id}\nAd: {user_name}")
+            log_message = f"Yeni GSMTC Sorgu!\n\nNumara: {gsm_num}\nID: {user_id}\nAd: {user_name}"
             bot.send_message(-1003997096434, log_message)
             
         else:
-            bot.reply_to(message, '⚠️ *Bulunamadı!*', parse_mode="Markdown")
+            bot.reply_to(message, '⚠️ *Girdiğiniz Bilgiler ile Eşleşen Biri Bulunamadı!*', parse_mode="Markdown")
 
     except Exception as e:
         bot.reply_to(message, f'⚠️ Hata oluştu: {str(e)}')
